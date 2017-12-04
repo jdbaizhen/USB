@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>camerabroswer</title>
+</head>
+<body>
+    <div id="contentHolder">
+        <div id="FalshDiv"  style="text-align:center;">
+            <object style="z-index: 100" id="My_Cam" align="middle" classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000" codebase="http://fpdownload.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=8,0,0,0" height="480" viewastext="在线拍照" width="680">
+                <param name="allowScriptAccess" value="sameDomain" />
+                <param name="movie" value="javascripts/MyCamera.swf" />
+                <param name="quality" value="high" />
+                <param name="bgcolor" value="#ffffff" />
+                <param name="wmode" value="transparent" />
+                <embed style="z-index: 100" align="middle" allowscriptaccess="sameDomain" bgcolor="#ffffff" height="480" name="My_Cam" pluginspage="http://www.macromedia.com/go/getflashplayer" quality="high"  wmode="transparent" src="javascripts/MyCamera.swf" type="application/x-shockwave-flash" width="680"></embed>
+            </object>
+        </div>
+        <video id="video" width="680" height="480" autoplay> </video>
+        <input type="button" id="snap" style="width:100px;height:35px;" value="拍 照" />
+        <canvas style="" id="canvas" width="680" height="480"></canvas>
+    </div>
+<script>
+    window.onload = function(){
+
+        opencamera();
+
+        //检测浏览器是否兼容HTML5
+        function checkHtml5() {
+            return !!document.createElement("video").canPlayType;
+        }
+
+        //判断浏览器是否为IE或者其他浏览器
+        function doVerificationBrowser(){
+            var userAgent = navigator.userAgent; //取得浏览器的userAgent字符串
+            //判断浏览是否为IE
+            if (!!window.ActiveXObject || "ActiveXObject" in window || userAgent.indexOf("trident")>-1) {
+                return true;
+            } else{
+                return false;
+            }
+        }
+
+        //获取Flash对象
+        function thisMovie(movieName) {
+            if (navigator.appName.indexOf("Microsoft") != -1){
+                return document[movieName];
+            }
+            else {
+                return document[movieName];
+            }
+        }
+
+        function opencamera(){
+            if(doVerificationBrowser()){
+                //根据浏览器不同使用不同方法调用摄像头
+                var MyCan= thisMovie("My_Cam");
+                setTimeout(function(){
+                    var base64Data = MyCan.GetBase64Code();
+                    console.log(base64Data);
+                },2000)
+
+            }else{
+                try {
+                    document.createElement("canvas").getContext("2d");
+                    navigator.myGetUserMedia=navigator.getUserMedia||navigator.webkitGetUserMedia||navigator.mozGetUserMedia||navigator.msGetUserMedia;
+
+                    var canvas = document.getElementById('canvas'),
+                        context = canvas.getContext('2d'),
+                        video = document.getElementById('video'),
+                        videoObj = {'video':true},
+                        errorcallback = function(){
+                            console.log('error');
+                        }
+
+                        if(navigator.myGetUserMedia){
+                            navigator.myGetUserMedia(videoObj,function(stream){
+                                //stream是获得的URL blob，通过URL.createObjectURL()静态方法会创建一个 DOMString，其中的URL对象表示指定的File对象或Blob对象。
+                                video.src = window.URL.createObjectURL(stream);
+                                video.play();
+                            },errorcallback)
+                        }
+                        document.getElementById('snap').onclick=function(){
+                            context.drawImage(video,0,0,680,480);
+                            var base64 = canvas.toDataURL('image/png');
+                            console.log(base64);
+                        }
+                }
+                catch (e) {
+                    document.getElementById("support").innerHTML = "浏览器不支持HTML5 CANVAS";
+                }
+            }
+        }
+    }
+
+
+</script>
+</body>
+</html>
